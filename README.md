@@ -9,6 +9,7 @@
 | Skill | 用途 |
 | --- | --- |
 | `multi-agent-orchestrator` | 用于复杂或长期 Codex 项目的多 Agent 编排。它让主线程负责目标、边界、决策、整合和最终汇报，并按任务长度和执行密度选择 role agent、subagent 或用户可见 Codex thread。 |
+| `transfer-codex-sessions` | 在多台设备之间导出、传输和导入 Codex 会话（sessions），基于 ai-cli-kit 的 aik codex 子命令。适用于换机迁移、会话备份和设备间同步。 |
 
 ## 安装
 
@@ -46,8 +47,14 @@ cp -R multi-agent-orchestrator ~/.codex/skills/
 .
 ├── README.md
 ├── AGENTS.md
-└── multi-agent-orchestrator/
+├── multi-agent-orchestrator/
+│   ├── SKILL.md
+│   └── agents/
+│       └── openai.yaml
+└── transfer-codex-sessions/
     ├── SKILL.md
+    ├── references/
+    │   └── commands.md
     └── agents/
         └── openai.yaml
 ```

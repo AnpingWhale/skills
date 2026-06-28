@@ -1,0 +1,4 @@
+interface:
+  display_name: "Transfer Codex Sessions 会话迁移"
+  short_description: "多设备间导出、传输和导入 Codex 会话"
+  default_prompt: "使用 $transfer-codex-sessions 在设备间迁移 Codex 会话。优先从安全命令开始（list、export、validate-bundles），破坏性命令（import、repair、clean）需先解释影响范围并获得用户确认。"
