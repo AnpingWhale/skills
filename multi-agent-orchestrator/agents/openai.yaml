@@ -1,0 +1,4 @@
+interface:
+  display_name: "Multi-Agent Orchestrator 多 Agent 编排"
+  short_description: "主线程协调长期项目、角色 Agent 与独立验收"
+  default_prompt: "使用 $multi-agent-orchestrator，以主线程协调长期项目，并按需派发角色 Agent / subagent。"
