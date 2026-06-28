@@ -1,6 +1,6 @@
 ---
 name: multi-agent-orchestrator
-description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：由主线程编排隔离的 workstreams、role agents/subagents 和独立验证。Use when the user asks for 多 Agent 协作, 主线程/子线程编排, main-thread orchestration, delegated workstreams, or a reusable protocol for complex Codex projects."
+description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：主线程编排隔离的 workstreams、role agents/subagents、用户可见 Codex thread、独立审查和上下文治理。Use when the user asks for 主线程模式, 编排模式, 多 Agent 协作, 多线程协作, 子智能体, 子Agent, 子线程, 新线程, 用户可见 thread, 派发任务, 回收结果, 审查/专家评价/质量评估, 独立验收, 避免 self-validation, context hygiene, or delegated workstreams."
 ---
 
 # Multi-Agent Orchestrator 多 Agent 主线程编排
@@ -16,6 +16,7 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 - 开始执行前，先说明选择的执行载体和原因：main thread、role agent/subagent、用户可见 Codex thread、staged single-thread fallback，或混合方式。
 - 按任务长度和执行密度选择载体：短、窄、一次性任务可以在主线程内派 role agent/subagent；较长、多轮、会产生执行层对话或需要持续上下文的任务，应优先切到用户可见 Codex thread。
 - 当任务会产生长日志、反复排障、大量读文件、凭据处理、UI 观察、安装配置、发布推送或多轮实现时，优先把执行细节移出主线程。
+- 当用户要求“审查、专家评价、质量评估、架构检查、找问题、验收、测试策略、安全/隐私/性能评估”时，默认委派给独立 role agent/subagent 或用户可见 thread。主线程不要亲自生成主要审查结论，只负责给出边界、回收证据、整合判断。
 - 不要把“用户只能和主线程沟通”当作硬规则。为了保护项目上下文，主线程可以要求用户去子 thread 处理执行层对话。
 - 优先遵守更高层约束：system/developer 指令、工具政策、仓库规则、审批要求和用户安全偏好。如果理想载体被限制，说明 fallback。
 - 用户可见 Codex thread 是主线程可以自主选择的执行载体。较长、多轮、会产生大量执行层上下文或需要持续状态的任务，主线程可以主动创建或要求切换到 thread，并说明目标、边界和回收方式；不要要求用户逐次明确提出“创建新 thread”才行动。如果更高层工具政策阻止自主创建，则说明限制，并请求授权。
@@ -25,8 +26,8 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 
 ## 执行载体
 
-- Main thread：intake、planning、decision-making、integration、少量只读检查、微小低风险修改，或委派成本高于收益的强顺序任务。
-- Role agent / subagent：短、窄、一次性、有边界的调研、实现、测试、review、架构批判、安全/隐私/性能检查、迁移规划，或任何需要独立视角并能返回简洁证据的任务。
+- Main thread：intake、planning、decision-making、integration、少量只读检查、微小低风险修改，或委派成本高于收益的强顺序任务。主线程可以做事实核对，但不应承担主要 review / audit 结论。
+- Role agent / subagent：短、窄、一次性、有边界的调研、实现、测试、review、架构批判、质量评估、安全/隐私/性能检查、迁移规划，或任何需要独立视角并能返回简洁证据的任务。
 - 用户可见 Codex thread：当主线程判断必要且工具政策允许时，用于较长或多轮执行分支、反复用户输入、环境配置、凭据流程、UI 驱动任务、大型 debug loop，或需要在主线程之外保留持久上下文的工作。
 - Staged fallback：没有可用委派工具时，显式拆分阶段，避免实现者推理成为唯一验证面。
 
@@ -97,7 +98,7 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 
 避免 self-validation：实现上下文不应成为唯一验证上下文。
 
-当工作涉及大范围代码修改、用户可见行为、发布/推送、迁移、凭据、安全/隐私风险、数据丢失风险或模糊验收标准时，必须进行独立验证。小范围低风险修改可以由主线程验证。
+当工作涉及大范围代码修改、用户可见行为、发布/推送、迁移、凭据、安全/隐私风险、数据丢失风险、模糊验收标准，或用户明确要求审查/专家评价/质量评估时，必须进行独立验证。小范围低风险修改可以由主线程验证。
 
 给验证者原始需求、变更文件、命令和可观察工件。除非任务需要，不要泄露实现者解释、怀疑点、预期结论或期望结果。验证者应优先寻找失败，并用证据支撑：文件路径、行号、命令输出、截图或复现步骤。
 
