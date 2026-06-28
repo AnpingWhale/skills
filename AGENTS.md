@@ -51,8 +51,10 @@
 ### 打断与监控
 
 - 如果用户说“停”“打断”“先别做”“换方向”，主线程立即停止当前执行载体或发送 interrupt，并回收当前状态。
-- 派发 subagent 后，主线程默认不频繁轮询。短任务若结果是当前回合关键路径，可以使用一次 `wait_agent`；否则等待 `completion notification`。
-- subagent 完成会产生 `completion notification`，但主线程不会像后台守护进程一样自动苏醒；只有主线程正在 `wait_agent`，或用户发来新消息/下一次主线程获得执行机会时，主线程才会消费通知。通知没有自动触发主线程响应是平台调度机制限制，不代表 subagent 没有回报。
+- 派发 subagent 后，主线程默认不频繁轮询。但如果 subagent 结果是当前任务关键路径，主线程不得直接 final，必须使用一次较长 `wait_agent` 等待完成，然后继续整合、关闭 agent、汇报。
+- 只有不需要自动继续的后台任务，才允许主线程结束，依赖用户下次消息、可见 thread 主动回报，或 heartbeat 自动化回收。
+- subagent 完成会产生 `completion notification`，但不会自动唤醒已经 final 的主线程；只有主线程正在 `wait_agent`，或用户发来新消息/下一次主线程获得执行机会时，主线程才会消费通知。通知没有自动触发主线程响应是平台调度机制限制，不代表 subagent 没有回报。
+- heartbeat 是定时唤醒检查，不是事件驱动 callback；不要把它描述成 `completion notification` 的 completion callback。
 - 一旦收到 subagent `completion notification`，或下一次主线程获得执行机会发现有完成通知，第一优先级是消费通知、整合摘要、关闭 agent（`close_agent`）。
 - 创建用户可见 thread 后，主线程默认不频繁轮询。只记录 thread id、任务目标、预期产出和约定回收点，等待执行 thread 主动完成。
 - 只有在用户询问进度、超过约定时限、需要主线程决策/授权/打断，或 thread 出现 `NEEDS_CONTEXT` / `BLOCKED` 信号时，才查询状态。
