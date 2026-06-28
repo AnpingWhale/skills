@@ -17,15 +17,19 @@ description: "在多台设备之间导出、传输和导入 Codex 会话（sessi
 
 ## 前置条件
 
-首次使用前安装上游工具：
+首次使用前，克隆并安装上游工具：
 
 ```bash
-npm install -g ai-cli-kit
+git clone https://github.com/goodnightzsj/codex-session-cloner.git
+cd codex-session-cloner
+chmod +x install.sh
+./install.sh
 ```
 
-验证安装：
+安装后，`aik` 命令注册在安装目录的 venv/bin 下。也可直接在项目目录内用 `./aik` 零污染运行：
 
 ```bash
+cd codex-session-cloner && ./aik --version
 aik --version
 ```
 
