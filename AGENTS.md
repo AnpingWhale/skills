@@ -1,15 +1,37 @@
 # Repository Agent Guidance
 
-## Agent skills
+这个仓库用于发布 AnpingWhale 的自建 Codex Skills。维护时优先保持公开仓库干净、可安装、可解释。
 
-### Issue tracker
+## Scope
 
-Issues and PRDs are tracked as local markdown files under `.scratch/<feature-slug>/`. External PRs are not a triage surface for this local tracker. See `docs/agents/issue-tracker.md`.
+- 保留自建 Skill 目录，例如 `multi-agent-orchestrator/`。
+- 不要提交第三方 vendored Skills，例如 `.agents/skills/`。
+- 不要提交本地工具状态，例如 `skills-lock.json`、`.scratch/`、`.DS_Store`。
+- 新增 Skill 时，一个 Skill 一个独立目录；目录名应与 `SKILL.md` frontmatter 的 `name` 一致。
 
-### Triage labels
+## Skill Layout
 
-The repo uses the default mattpocock/skills triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+每个 Skill 目录默认只需要：
 
-### Domain docs
+```text
+skill-name/
+├── SKILL.md
+└── agents/
+    └── openai.yaml
+```
 
-Domain documentation uses a multi-context layout: root `CONTEXT-MAP.md` points to context-specific `CONTEXT.md` files when present, with ADRs at `docs/adr/` and context-level ADRs where relevant. See `docs/agents/domain.md`.
+只有在确实需要时才添加：
+
+- `scripts/`：可复用脚本。
+- `references/`：按需读取的详细参考资料。
+- `assets/`：输出素材、模板或静态资源。
+
+不要在单个 Skill 目录里放安装指南、临时日志、过程记录或泛用 README。
+
+## Maintenance Checklist
+
+- 更新 `README.md`，让公开读者知道新增或移除的 Skill 是做什么的。
+- 校验 `SKILL.md` frontmatter 和 `agents/openai.yaml` 都能被 YAML 解析。
+- 如果当前机器也安装了该 Skill，同步更新 `~/.codex/skills/<skill-name>/`。
+- 不要在普通聊天、subagent 输出或提交内容中暴露 token、secret 或本机私有路径。
+- 长任务按 `multi-agent-orchestrator` 的规则选择执行载体；主线程只保留决策、摘要和最终结论。

@@ -1,128 +1,95 @@
-# Codex Skills 工作区
+# AnpingWhale Codex Skills
 
-这个目录用于存放多个 Codex Skill。每个 Skill 都应是一个独立子目录，目录名与 Skill 名称一致，并包含自己的 `SKILL.md`。
+这是 AnpingWhale 的个人 Codex Skills 仓库，用来公开、同步和安装自建 Skills。
 
-当前已有 Skill：
+这个仓库不是本机 Codex 工作区快照，也不镜像第三方 Skills。每个自建 Skill 都是一个独立目录，目录名与 Skill 名称一致，并包含自己的 `SKILL.md`。
 
-- `multi-agent-orchestrator`：用于长期项目中的主线程编排和多 Agent 协作。
-- `.agents/skills/`：通过 `npx skills@latest add mattpocock/skills` 安装的第三方 Skills。
+## 当前包含的 Skills
 
-## 推荐目录结构
+| Skill | 用途 |
+| --- | --- |
+| `multi-agent-orchestrator` | 用于复杂或长期 Codex 项目的多 Agent 编排。它让主线程负责目标、边界、决策、整合和最终汇报，并按任务长度和执行密度选择 role agent、subagent 或用户可见 Codex thread。 |
+
+## 安装
+
+如果你的 `skills` CLI 支持从 GitHub 仓库安装，可以直接运行：
+
+```bash
+npx skills@latest add AnpingWhale/skills
+```
+
+也可以手动安装单个 Skill：
+
+```bash
+git clone https://github.com/AnpingWhale/skills.git anpingwhale-codex-skills
+mkdir -p ~/.codex/skills
+cp -R anpingwhale-codex-skills/multi-agent-orchestrator ~/.codex/skills/
+```
+
+更新手动安装的 Skill：
+
+```bash
+cd anpingwhale-codex-skills
+git pull
+cp -R multi-agent-orchestrator ~/.codex/skills/
+```
+
+## 使用示例
 
 ```text
-/Users/admin/Desktop/skills/
+使用 $multi-agent-orchestrator 管理这个长期项目。主线程负责目标、决策和整合；请按任务长度和执行密度，自主选择 role agent、subagent 或用户可见 Codex thread。
+```
+
+## 仓库结构
+
+```text
+.
 ├── README.md
-├── skills-lock.json
-├── multi-agent-orchestrator/
-│   ├── SKILL.md
-│   └── agents/
-│       └── openai.yaml
-├── .agents/
-│   └── skills/
-│       └── third-party-skill-name/
-│           └── SKILL.md
-└── future-skill-name/
+├── AGENTS.md
+└── multi-agent-orchestrator/
     ├── SKILL.md
-    ├── agents/
-    │   └── openai.yaml
-    ├── scripts/
-    ├── references/
-    └── assets/
+    └── agents/
+        └── openai.yaml
 ```
 
-其中 `scripts/`、`references/`、`assets/` 都是可选目录，只在对应 Skill 真正需要时创建。
+目录约定：
 
-## Skill 目录规则
+- `SKILL.md` 是每个 Skill 的核心文件，包含 YAML frontmatter 和 Codex 使用该 Skill 时需要读取的说明。
+- `agents/openai.yaml` 是推荐的 UI metadata，用于展示名称、简介和默认调用提示。
+- `scripts/`、`references/`、`assets/` 只在某个 Skill 真正需要可复用脚本、详细参考资料或输出素材时才创建。
+- `.agents/`、`skills-lock.json`、`.scratch/` 和 `.DS_Store` 都是本地工作区或工具生成文件，不应提交到这个公开仓库。
 
-每个 Skill 子目录应尽量保持精简：
+## 第三方 Skills
 
-- `SKILL.md`：必需。包含 YAML frontmatter 和 Codex 使用该 Skill 时需要读取的核心说明。
-- `agents/openai.yaml`：推荐。用于展示名称、简介和默认调用提示。
-- `scripts/`：可选。放可复用脚本。
-- `references/`：可选。放按需读取的详细参考资料。
-- `assets/`：可选。放模板、图片、字体、示例资源等输出素材。
-
-不要在单个 Skill 子目录中放不必要的辅助文档，例如 `README.md`、`INSTALLATION_GUIDE.md`、`QUICK_REFERENCE.md`、`CHANGELOG.md`。这就是之前提到的 Skill Creator 建议：Skill 文件夹本身应该只包含会直接帮助 Codex 执行该 Skill 的必要材料，避免额外文档增加噪音。
-
-根目录的 `README.md` 不属于某个单独 Skill，因此适合用来说明整个 Skills 工作区的结构、索引和维护规则。
-
-## 当前 Skill
-
-### 自建 Skill：multi-agent-orchestrator
-
-路径：
-
-```text
-/Users/admin/Desktop/skills/multi-agent-orchestrator
-```
-
-用途：
-
-- 让当前会话作为用户唯一沟通的主线程。
-- 由主线程按需创建或使用角色 Agent / subagent。
-- 将实现、测试、评审、调研等职责拆开。
-- 降低长期项目中的上下文堆积和 token 消耗。
-- 避免实现者自测自证，提高验收质量。
-
-典型调用：
-
-```text
-Use $multi-agent-orchestrator to coordinate this project through a main thread and focused role agents.
-```
-
-中文调用：
-
-```text
-从现在开始，这个项目采用主线程编排模式。我只和当前主线程对话；请按需使用角色 Agent 或 subagent 完成实现、测试、评审和调研。
-```
-
-### 第三方 Skills：.agents/skills
-
-路径：
-
-```text
-/Users/admin/Desktop/skills/.agents/skills
-```
-
-这些 Skills 由 `skills` CLI 管理，`skills-lock.json` 记录来源、路径和 hash。同步到 GitHub 时建议一起提交 `.agents/skills` 和 `skills-lock.json`，这样其他机器可以看到当前已安装版本；如果只想同步自建 Skills，可以在后续调整 `.gitignore` 排除 `.agents/`。
-
-## 新增 Skill 流程
-
-建议使用 Skill Creator 的初始化脚本创建新 Skill：
+这个仓库不 vendor 第三方 Skills。需要安装 Matt Pocock 的工程 Skills 时，请直接从上游安装：
 
 ```bash
-python3 /Users/admin/.codex/skills/.system/skill-creator/scripts/init_skill.py new-skill-name --path /Users/admin/Desktop/skills
+npx skills@latest add mattpocock/skills
 ```
 
-如果需要预先创建资源目录：
+这样可以避免把第三方、deprecated、in-progress 或 personal Skills 混进本仓库的公开发布面。
+
+## 新增 Skill
+
+新增自建 Skill 时，建议遵守以下规则：
+
+- 使用小写 hyphen-case 命名目录，例如 `my-new-skill/`。
+- 每个 Skill 目录必须包含 `SKILL.md`。
+- `SKILL.md` 的 frontmatter 只保留必要字段，尤其是清楚的 `name` 和 `description`。
+- `description` 要说明 Skill 做什么，以及什么时候应该触发。
+- Skill 正文只保留核心执行规则；详细但非核心的材料放到 `references/`，并在 `SKILL.md` 中说明何时读取。
+- 不要在单个 Skill 目录中放无关 README、安装指南、临时日志或过程记录。
+
+## 维护
+
+`AGENTS.md` 是给 Codex 或其他维护 Agent 看的仓库维护约定，不是安装 Skill 的必要文件。
+
+提交前建议检查：
 
 ```bash
-python3 /Users/admin/.codex/skills/.system/skill-creator/scripts/init_skill.py new-skill-name --path /Users/admin/Desktop/skills --resources scripts,references,assets
+ruby -ryaml -e 'skill=ARGV[0]; text=File.read(skill+"/SKILL.md"); m=text.match(/\A---\n(.*?)\n---/m); abort "Invalid frontmatter" unless m; fm=YAML.safe_load(m[1]); abort "Missing name" unless fm["name"].is_a?(String); abort "Missing description" unless fm["description"].is_a?(String); YAML.safe_load(File.read(skill+"/agents/openai.yaml")) if File.exist?(skill+"/agents/openai.yaml"); puts "Skill parses successfully"' multi-agent-orchestrator
 ```
 
-创建后重点检查：
+## License
 
-- Skill 名称是否为小写 hyphen-case。
-- `SKILL.md` frontmatter 是否只包含必要字段。
-- `description` 是否清楚说明什么时候触发该 Skill。
-- `SKILL.md` 正文是否只保留核心执行规则。
-- 资源目录是否确实有必要存在。
-- `agents/openai.yaml` 是否与 Skill 说明一致。
-
-## 验证
-
-可以使用 Skill Creator 的校验脚本检查某个 Skill：
-
-```bash
-python3 /Users/admin/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/admin/Desktop/skills/multi-agent-orchestrator
-```
-
-如果当前 Python 环境缺少 `PyYAML`，脚本可能会因为依赖缺失失败；这不一定代表 Skill 内容无效。可以换到具备 `PyYAML` 的环境运行，或使用其他 YAML 解析工具做等价检查。
-
-## 维护原则
-
-- 根目录 README 负责维护整个 Skills 工作区的索引和规则。
-- 单个 Skill 的执行说明写在对应的 `SKILL.md` 中。
-- 详细但非核心的资料放进该 Skill 的 `references/`，并在 `SKILL.md` 中说明何时读取。
-- 可重复执行的确定性操作优先沉淀为 `scripts/`。
-- 不要把临时日志、项目过程记录或泛用说明塞进 Skill 子目录。
+本仓库暂未声明开源许可证。公开仓库用于同步和安装个人 Skills；如果要允许他人复制、修改或再分发，请先补充明确的 `LICENSE`。
