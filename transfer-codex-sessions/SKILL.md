@@ -13,7 +13,7 @@ description: "在多台设备之间导出、传输和导入 Codex 会话（sessi
 - **供应商克隆**：`clone-provider`、`watch-provider`（切换 AI 供应商时自动复制历史会话）
 - **维护清理**：`repair-desktop`、`clean-archived`、`clean-clones`、`dedupe-clones`
 
-核心原则：优先使用只读命令探查状态；破坏性命令（导入、清理、修复）需要 dry-run 预览和用户确认。
+核心原则：优先使用只读命令探查状态；`import` / `import-desktop-all` 不支持 dry-run，导入前必须先 `validate-bundles`、`list-bundles`、冲突分析并获得用户确认；支持 dry-run 的清理、修复和克隆命令先预览再执行。
 
 ## 前置条件
 
@@ -69,6 +69,8 @@ aik codex list-bundles [pattern] --limit 30 [--source all|bundle|desktop]
 # 验证 bundle 完整性
 aik codex validate-bundles [pattern] [--source all|bundle|desktop] [--verbose]
 
+# 导入命令不支持 --dry-run；先完成只读预检、冲突分析并获得用户确认
+
 # 导入单个会话
 aik codex import <session_id|bundle_dir> [--desktop-visible] [--machine MACHINE] [--export-group GROUP]
 
@@ -76,7 +78,7 @@ aik codex import <session_id|bundle_dir> [--desktop-visible] [--machine MACHINE]
 aik codex import-desktop-all [--desktop-visible] [--machine MACHINE] [--export-group GROUP] [--latest-only]
 ```
 
-导入前自动冲突检查：已存在会话默认跳过，不覆盖。
+导入前不要给 `import` 或 `import-desktop-all` 添加 `--dry-run`。应先用 `list-bundles` 和 `validate-bundles` 确认候选 bundle，再检查目标设备是否已有同 ID 会话、说明将导入哪些 bundle、哪些会因冲突跳过，获得用户确认后再执行。导入时已存在会话默认跳过，不覆盖。
 
 ### 4. 验证导入结果
 
@@ -122,8 +124,9 @@ aik codex dedupe-clones [target_provider] [--dry-run]
 - **bundle 含敏感信息**：导出 bundle 包含完整对话历史、文件引用、凭据上下文等。不得上传到公开仓库、共享网盘或不安全通道。
 - **传输加密**：跨网络传输时使用加密通道（rsync over SSH、加密压缩包等）。
 - **用后清理**：传输完成后在传输介质上删除 bundle。
-- **破坏性命令需确认**：`import`、`import-desktop-all`、`repair-desktop`、`clean-archived`、`clean-clones`、`dedupe-clones` 需要 dry-run 预览和用户确认。
-- **dry-run 先行**：不确定结果时，先用 `list`、`list-bundles`、`validate-bundles` 等只读命令探查状态。
+- **导入命令无 dry-run**：`import`、`import-desktop-all` 会写入会话存储，但不支持 `--dry-run`。必须先做 `validate-bundles`、`list-bundles`、冲突分析和用户确认。
+- **支持 dry-run 的命令先预览**：`repair-desktop`、`clean-archived`、`clean-clones`、`dedupe-clones`、`clone-provider`、`watch-provider` 等在执行前先用 `--dry-run` 预览并获得用户确认。
+- **只读探查先行**：不确定结果时，先用 `list`、`list-bundles`、`validate-bundles` 等只读命令探查状态，不要假设某个写入命令一定支持 `--dry-run`。
 
 ## 参考
 

@@ -8,7 +8,7 @@
 
 | Skill | 用途 |
 | --- | --- |
-| `multi-agent-orchestrator` | 用于复杂或长期 Codex 项目的多 Agent 编排。它让主线程负责目标、边界、决策、整合和最终汇报，并按任务长度和执行密度选择 role agent、subagent 或用户可见 Codex thread。 |
+| `multi-agent-orchestrator` | 用于复杂或长期 Codex 项目的多 Agent 编排。Skill 提供触发入口、说明和 AGENTS.md 模板；核心行为通过目标项目 `AGENTS.md` 中的主线程编排规则实现。 |
 | `transfer-codex-sessions` | 在多台设备之间导出、传输和导入 Codex 会话（sessions），基于 ai-cli-kit 的 aik codex 子命令。适用于换机迁移、会话备份和设备间同步。 |
 
 ## 安装
@@ -41,6 +41,8 @@ cp -R multi-agent-orchestrator ~/.codex/skills/
 使用 $multi-agent-orchestrator 管理这个长期项目。主线程负责目标、决策和整合；请按任务长度和执行密度，自主选择 role agent、subagent 或用户可见 Codex thread。
 ```
 
+长期项目建议同时把 `multi-agent-orchestrator/references/agents-section.md` 复制到目标项目的 `AGENTS.md`。只安装 Skill 但不配置 `AGENTS.md`，会降低触发成功率和执行一致性。
+
 ## 仓库结构
 
 ```text
@@ -49,6 +51,8 @@ cp -R multi-agent-orchestrator ~/.codex/skills/
 ├── AGENTS.md
 ├── multi-agent-orchestrator/
 │   ├── SKILL.md
+│   ├── references/
+│   │   └── agents-section.md
 │   └── agents/
 │       └── openai.yaml
 └── transfer-codex-sessions/
@@ -61,7 +65,8 @@ cp -R multi-agent-orchestrator ~/.codex/skills/
 
 目录约定：
 
-- `SKILL.md` 是每个 Skill 的核心文件，包含 YAML frontmatter 和 Codex 使用该 Skill 时需要读取的说明。
+- `SKILL.md` 是每个 Skill 的入口文件，包含 YAML frontmatter 和 Codex 使用该 Skill 时需要读取的说明。
+- `multi-agent-orchestrator` 的运行时核心规则放在项目 `AGENTS.md`；`references/agents-section.md` 是复制到其他项目的模板。
 - `agents/openai.yaml` 是推荐的 UI metadata，用于展示名称、简介和默认调用提示。
 - `scripts/`、`references/`、`assets/` 只在某个 Skill 真正需要可复用脚本、详细参考资料或输出素材时才创建。
 - `.agents/`、`skills-lock.json`、`.scratch/` 和 `.DS_Store` 都是本地工作区或工具生成文件，不应提交到这个公开仓库。
@@ -84,12 +89,12 @@ npx skills@latest add mattpocock/skills
 - 每个 Skill 目录必须包含 `SKILL.md`。
 - `SKILL.md` 的 frontmatter 只保留必要字段，尤其是清楚的 `name` 和 `description`。
 - `description` 要说明 Skill 做什么，以及什么时候应该触发。
-- Skill 正文只保留核心执行规则；详细但非核心的材料放到 `references/`，并在 `SKILL.md` 中说明何时读取。
+- Skill 正文只保留入口说明和必要规则；详细材料、AGENTS 模板或命令参考放到 `references/`，并在 `SKILL.md` 中说明何时读取。
 - 不要在单个 Skill 目录中放无关 README、安装指南、临时日志或过程记录。
 
 ## 维护
 
-`AGENTS.md` 是给 Codex 或其他维护 Agent 看的仓库维护约定，不是安装 Skill 的必要文件。
+本仓库的 `AGENTS.md` 同时承担仓库维护约定和当前项目的 `multi-agent-orchestrator` 行为规则。把该 Skill 用到其他项目时，需要把 `multi-agent-orchestrator/references/agents-section.md` 复制进目标项目的 `AGENTS.md`。
 
 提交前建议检查：
 

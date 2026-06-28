@@ -1,22 +1,37 @@
 ---
 name: multi-agent-orchestrator
-description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：主线程编排隔离的 workstreams、role agents/subagents、用户可见 Codex thread、独立审查和上下文治理。Use when the user asks for 主线程模式, 编排模式, 多 Agent 协作, 多线程协作, 子智能体, 子Agent, 子线程, 新线程, 用户可见 thread, 派发任务, 回收结果, 审查/专家评价/质量评估, 独立验收, 避免 self-validation, context hygiene, or delegated workstreams."
+description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：主线程模式/编排模式下隔离 workstreams，自动派发 role agents/subagents、子智能体/子Agent、子线程/新线程/用户可见线程，治理上下文并避免 self-validation/自恋。Use when the user asks for 主线程模式、编排模式、多 Agent 协作、多线程协作、派发任务、回收结果、归档线程、Thread 工具自检、create-visible-thread、审查、专家评价、质量评估、独立验收、测试策略、安全隐私性能评估、修改文件、提交、推送 GitHub、配置、安装、凭据流程、排障、长命令、长日志, or delegated workstreams/context hygiene."
 ---
 
 # Multi-Agent Orchestrator 多 Agent 主线程编排
 
+## 实现方式
+
+本 Skill 主要提供文档、触发描述和 AGENTS.md 模板。核心逻辑应通过项目根目录的 `AGENTS.md` 实现，因为 `AGENTS.md` 会直接约束 AI 在该项目中的行为。
+
+本仓库的根 `AGENTS.md` 已包含 `Multi-Agent Orchestrator Mode`，用于当前项目。把这个 Skill 安装到其他长期项目时，应将 [references/agents-section.md](references/agents-section.md) 中的章节复制到目标项目 `AGENTS.md`，否则 Skill 只能作为提示和说明，无法稳定约束主线程行为。
+
+`AGENTS.md` 负责实现：
+
+- 任务类型判断和触发规则。
+- subagent / 用户可见 thread 的选择与 spawn 策略。
+- 状态处理：`DONE`、`DONE_WITH_CONCERNS`、`NEEDS_CONTEXT`、`BLOCKED`。
+- 打断机制、状态监控、agent 自动关闭和 thread 归档提醒。
+
 ## 目的
 
-使用这个 Skill 时，把复杂 Codex 工作作为 main-thread orchestration 来推进。主线程负责意图、边界、决策、证据整合、验收和最终汇报；执行载体负责命令密集或细节密集的工作，例如调研、实现、测试、review、配置、排障、发布检查、UI 操作、凭据流程和长日志。
+使用这个 Skill 时，把复杂 Codex 工作作为 main-thread orchestration 来推进。主线程负责意图、边界、决策、证据整合和最终汇报；不承接主要审查结论，也不承接长执行或发布操作。执行载体负责命令密集或细节密集的工作，例如调研、实现、测试、review、修改文件、提交、推送、配置、安装、排障、发布检查、UI 操作、凭据流程和长日志。
 
 目标不是尽量多用 Agent，而是保护判断质量、减少上下文污染，并避免 self-validation。
 
-## 核心规则
+## AGENTS.md 运行规则摘要
+
+以下内容是 `AGENTS.md` 行为规则摘要。执行时优先遵守当前项目 `AGENTS.md`；如果项目中没有对应章节，先安装或补齐 `references/agents-section.md`，再开始长期/复杂任务。
 
 - 开始执行前，先说明选择的执行载体和原因：main thread、role agent/subagent、用户可见 Codex thread、staged single-thread fallback，或混合方式。
 - 按任务长度和执行密度选择载体：短、窄、一次性任务可以在主线程内派 role agent/subagent；较长、多轮、会产生执行层对话或需要持续上下文的任务，应优先切到用户可见 Codex thread。
-- 当任务会产生长日志、反复排障、大量读文件、凭据处理、UI 观察、安装配置、发布推送或多轮实现时，优先把执行细节移出主线程。
 - 当用户要求“审查、专家评价、质量评估、架构检查、找问题、验收、测试策略、安全/隐私/性能评估”时，默认委派给独立 role agent/subagent 或用户可见 thread。主线程不要亲自生成主要审查结论，只负责给出边界、回收证据、整合判断。
+- 当任务涉及修改文件、提交 git、推送 GitHub、创建/更新 PR、安装配置、凭据流程、长命令、长日志、反复排障、大量读文件、UI 观察、发布检查或多轮实现时，默认移到执行载体。主线程只保留调度、授权边界、结果整合和最终汇报。
 - 不要把“用户只能和主线程沟通”当作硬规则。为了保护项目上下文，主线程可以要求用户去子 thread 处理执行层对话。
 - 优先遵守更高层约束：system/developer 指令、工具政策、仓库规则、审批要求和用户安全偏好。如果理想载体被限制，说明 fallback。
 - 用户可见 Codex thread 是主线程可以自主选择的执行载体。较长、多轮、会产生大量执行层上下文或需要持续状态的任务，主线程可以主动创建或要求切换到 thread，并说明目标、边界和回收方式；不要要求用户逐次明确提出“创建新 thread”才行动。如果更高层工具政策阻止自主创建，则说明限制，并请求授权。
@@ -26,12 +41,42 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 
 ## 执行载体
 
-- Main thread：intake、planning、decision-making、integration、少量只读检查、微小低风险修改，或委派成本高于收益的强顺序任务。主线程可以做事实核对，但不应承担主要 review / audit 结论。
+- Main thread：intake、planning、decision-making、integration、少量只读检查，或委派成本高于收益的强顺序任务。只有任务极小、低风险且没有合适执行载体时，才可做微小修改；不得承担主要 review/audit 结论、长执行、提交、推送、安装配置或凭据流程。
 - Role agent / subagent：短、窄、一次性、有边界的调研、实现、测试、review、架构批判、质量评估、安全/隐私/性能检查、迁移规划，或任何需要独立视角并能返回简洁证据的任务。
-- 用户可见 Codex thread：当主线程判断必要且工具政策允许时，用于较长或多轮执行分支、反复用户输入、环境配置、凭据流程、UI 驱动任务、大型 debug loop，或需要在主线程之外保留持久上下文的工作。
+- 用户可见 Codex thread：当主线程判断必要且工具政策允许时，用于较长或多轮执行分支、反复用户输入、环境配置、安装、凭据流程、提交/推送、UI 驱动任务、大型 debug loop，或需要在主线程之外保留持久上下文的工作。
 - Staged fallback：没有可用委派工具时，显式拆分阶段，避免实现者推理成为唯一验证面。
 
 如果主线程开始堆积执行日志或低层排障细节，应停下来重新选择执行载体。
+
+## Thread 工具自检与扩展
+
+当任务应该进入用户可见 Codex thread 时，主线程先做工具自检，不把“当前没有直接按钮/工具”当成最终结论：
+
+1. 检查当前可调用工具：优先找 `create_thread`、`fork_thread`、`send_message_to_thread`、`handoff_thread`、`set_thread_title`、`set_thread_archived` 等明确 thread 工具。
+2. 如果没有直接工具，检查能否补齐桥接能力：Codex CLI、Codex Desktop deeplink、MCP/插件接口、`codex_app` 工具、`codex app-server` / `remote-control` 协议和本地状态文件。优先使用正式协议或可发现 schema，不直接写本地 SQLite/JSONL 状态。
+3. 发现可桥接协议时，设计最小工具而不是放弃。推荐工具名：`create-visible-thread`。
+4. 只有直接工具和桥接方案都暂不可用时，才使用中文命名 role agent/subagent 或 staged fallback，并在主线程说明这是 fallback。
+
+`create-visible-thread` 的最小契约：
+
+```text
+Input: thread_name, objective, initial_prompt, cwd?, model?, sandbox?, approval_policy?, parent_thread_id?
+Behavior: 通过受支持的 Codex app-server/remote-control 协议创建非 ephemeral thread，设置用户可见名称，投递 initial_prompt，必要时记录 parent/child 关系。
+Output: thread_id, session_id, name, open_link 或可打开方式, status, residual_risk
+```
+
+当前可优先评估的协议路径是 app-server v2：`thread/start` 创建 thread，`thread/name/set` 设置名称，`turn/start` 投递初始 prompt，`thread/list` / `thread/read` 验证可见性。CLI 的 `fork`/`resume` 只能作为特定场景补充；Desktop deeplink 只有在明确 route 可用时才使用；本地数据库只可只读取证。
+
+## 触发失败自救
+
+如果主线程发现自己正在亲自做执行活（例如写文件、跑长命令、读长日志、排障循环、安装配置、处理凭据、提交、推送、生成审查结论或质量评价），立即停下并自检：
+
+1. 说明纠偏：当前工作应由执行载体承担，主线程改回编排。
+2. 选择载体：role agent/subagent、用户可见 thread，或 staged fallback。
+3. 交接状态：目标、约束、已知证据、允许动作、禁止动作和预期输出。
+4. 回收结果：只把结论、证据、变更文件、验证结果、阻塞点和 residual risk 带回主线程。
+
+不要为了“已经开始了”继续在主线程把执行做完。
 
 ## 项目状态
 
@@ -73,7 +118,7 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 
 ## 命名规范
 
-可读的命名让用户一眼看出谁在做什么。禁止使用系统自动生成的昵称（如 Kuhn、Kant、Mill）作为执行载体的身份标识。
+可读的命名让用户一眼看出谁在做什么。工具可能返回系统昵称（如 Kuhn、Kant、Mill），但主线程对用户汇报、状态表和任务记录时，始终使用中文任务名作为执行载体身份。
 
 **Subagent / Role agent（中文命名）：**
 
@@ -82,7 +127,7 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 - `测试-导入Bundle` ← 好：做什么（测试）+ 对什么做（导入Bundle）
 - `构建-迁移Skill` ← 好：做什么（构建）+ 对什么做（迁移Skill）
 - `审查-编排Skill` ← 好：做什么（审查）+ 对什么做（编排Skill）
-- `Kuhn` / `Mill` ← 禁止：系统昵称，完全看不出任务
+- `Kuhn` / `Mill` ← 不作为用户可见任务名：系统昵称看不出任务
 
 **用户可见 Codex thread（中文命名）：**
 
@@ -98,7 +143,7 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 
 避免 self-validation：实现上下文不应成为唯一验证上下文。
 
-当工作涉及大范围代码修改、用户可见行为、发布/推送、迁移、凭据、安全/隐私风险、数据丢失风险、模糊验收标准，或用户明确要求审查/专家评价/质量评估时，必须进行独立验证。小范围低风险修改可以由主线程验证。
+当工作涉及大范围代码修改、用户可见行为、发布/推送、迁移、凭据、安全/隐私风险、性能风险、数据丢失风险、模糊验收标准，或用户明确要求审查/专家评价/质量评估/验收/测试策略时，必须进行独立验证。小范围低风险修改可以由主线程验证。
 
 给验证者原始需求、变更文件、命令和可观察工件。除非任务需要，不要泄露实现者解释、怀疑点、预期结论或期望结果。验证者应优先寻找失败，并用证据支撑：文件路径、行号、命令输出、截图或复现步骤。
 
@@ -146,3 +191,12 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 - 相关时说明使用了哪些执行载体，以及为什么。
 - 包含变更文件、验证结果和未解决风险。
 - 除非用户要求，不转发完整 subagent 记录。
+
+## 安装到其他项目
+
+1. 安装本 Skill。
+2. 打开目标项目根目录的 `AGENTS.md`。
+3. 复制 [references/agents-section.md](references/agents-section.md) 中的 `Multi-Agent Orchestrator Mode` 章节。
+4. 之后再使用 `$multi-agent-orchestrator` 开始长期项目。
+
+如果目标项目没有 `AGENTS.md`，先创建它。只安装 Skill 但不更新 `AGENTS.md`，会降低触发成功率和执行一致性。

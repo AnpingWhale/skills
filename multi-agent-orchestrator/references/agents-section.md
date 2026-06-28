@@ -1,17 +1,11 @@
-# Repository Agent Guidance
+# Multi-Agent Orchestrator Mode for AGENTS.md
 
-这个仓库用于发布 AnpingWhale 的自建 Codex Skills。维护时优先保持公开仓库干净、可安装、可解释。
+把下面章节复制到目标项目的 `AGENTS.md`。`multi-agent-orchestrator` Skill 主要提供说明和辅助材料；运行时行为由项目 `AGENTS.md` 约束。
 
-## Scope
-
-- 保留自建 Skill 目录，例如 `multi-agent-orchestrator/`。
-- 不要提交第三方 vendored Skills，例如 `.agents/skills/`。
-- 不要提交本地工具状态，例如 `skills-lock.json`、`.scratch/`、`.DS_Store`。
-- 新增 Skill 时，一个 Skill 一个独立目录；目录名应与 `SKILL.md` frontmatter 的 `name` 一致。
-
+```markdown
 ## Multi-Agent Orchestrator Mode
 
-本仓库启用主线程编排模式。`multi-agent-orchestrator` Skill 主要提供说明、模板和辅助材料；真正约束当前项目内 AI 行为的是本节 AGENTS.md 规则。
+本项目启用主线程编排模式。主线程负责目标、边界、决策、整合和最终汇报；执行载体负责审查、实现、测试、配置、排障、提交、推送和长日志。
 
 ### 任务类型判断
 
@@ -59,30 +53,4 @@
 2. 选择载体：用户可见 thread、中文命名 subagent，或 staged fallback。
 3. 交接状态：目标、约束、已知证据、允许动作、禁止动作和预期输出。
 4. 回收结果：只带回 executive summary。
-
-## Skill Layout
-
-每个 Skill 目录默认只需要：
-
-```text
-skill-name/
-├── SKILL.md
-└── agents/
-    └── openai.yaml
 ```
-
-只有在确实需要时才添加：
-
-- `scripts/`：可复用脚本。
-- `references/`：按需读取的详细参考资料。
-- `assets/`：输出素材、模板或静态资源。
-
-不要在单个 Skill 目录里放安装指南、临时日志、过程记录或泛用 README。
-
-## Maintenance Checklist
-
-- 更新 `README.md`，让公开读者知道新增或移除的 Skill 是做什么的。
-- 校验 `SKILL.md` frontmatter 和 `agents/openai.yaml` 都能被 YAML 解析。
-- 如果当前机器也安装了该 Skill，同步更新 `~/.codex/skills/<skill-name>/`。
-- 不要在普通聊天、subagent 输出或提交内容中暴露 token、secret 或本机私有路径。
-- 长任务按 `multi-agent-orchestrator` 的规则选择执行载体；主线程只保留决策、摘要和最终结论。

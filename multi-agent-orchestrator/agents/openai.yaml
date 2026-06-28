@@ -1,4 +1,4 @@
 interface:
   display_name: "Multi-Agent Orchestrator 多 Agent 编排"
-  short_description: "主线程编排复杂项目、角色 Agent 与独立验证"
-  default_prompt: "使用 $multi-agent-orchestrator，以主线程编排复杂项目，并按需派发 role agent / subagent 做独立验证。"
+  short_description: "用 AGENTS.md 固化主线程编排、子代理与独立验证"
+  default_prompt: "使用 $multi-agent-orchestrator。先确认当前项目 AGENTS.md 是否包含 Multi-Agent Orchestrator Mode；若缺失，参考 Skill 的 agents-section 模板补齐。之后主线程只做编排，审查、修改、提交、推送、配置和长执行交给合适执行载体。"

@@ -42,13 +42,15 @@
 
 这些命令将 bundle 写入 `~/.codex` 下的实际会话存储。已存在会话默认跳过，不会覆盖。
 
+导入命令不支持 `--dry-run`。执行前必须先运行 `list-bundles` 和 `validate-bundles`，确认候选 bundle、来源、machine/export group、目标设备冲突和默认跳过项，并把影响范围说明给用户确认。不要向 `import` 或 `import-desktop-all` 添加不存在的 `--dry-run` 参数。
+
 ### `aik codex import <input_value> [--desktop-visible] [--source all|bundle|desktop] [--machine MACHINE] [--export-group GROUP]`
 
-导入单个会话。`input_value` 可以是会话 ID（从 bundle 搜索匹配）或完整 bundle 目录路径。`--desktop-visible` 使导入的会话在桌面端侧边栏可见。`--machine` 和 `--export-group` 用于在多 machine/bundle 中精确定位。
+导入单个会话。`input_value` 可以是会话 ID（从 bundle 搜索匹配）或完整 bundle 目录路径。`--desktop-visible` 使导入的会话在桌面端侧边栏可见。`--machine` 和 `--export-group` 用于在多 machine/bundle 中精确定位。执行前必须获得用户确认。
 
 ### `aik codex import-desktop-all [--desktop-visible] [--machine MACHINE] [--export-group GROUP] [--latest-only]`
 
-批量导入 `./codex_sessions/` 下所有匹配条件的 bundle。`--latest-only` 仅导入每个 machine 和 session id 的最新版本。**执行前必须获得用户确认。**
+批量导入 `./codex_sessions/` 下所有匹配条件的 bundle。`--latest-only` 仅导入每个 machine 和 session id 的最新版本。**不支持 dry-run，执行前必须完成只读预检和用户确认。**
 
 ## 供应商克隆类命令
 
@@ -96,5 +98,6 @@
 | --- | --- |
 | **安全（只读）** | `list`、`list-bundles`、`validate-bundles` |
 | **安全（只写 bundle，不改会话）** | `export`、`export-desktop-all`、`export-active-desktop-all`、`export-cli-all`、`clone-provider`（dry-run）、`watch-provider`（dry-run） |
-| **需确认（写入会话存储）** | `import`、`import-desktop-all`、`clone-provider`（执行）、`watch-provider`（执行） |
+| **需确认（写入会话存储，不支持 dry-run）** | `import`、`import-desktop-all` |
+| **需确认（写入会话存储，支持 dry-run）** | `clone-provider`（执行）、`watch-provider`（执行） |
 | **需确认（修改/删除数据）** | `repair-desktop`、`clean-archived`、`clean-clones`、`dedupe-clones` |
