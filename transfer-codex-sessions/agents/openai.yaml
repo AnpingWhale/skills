@@ -1,4 +1,4 @@
 interface:
   display_name: "Transfer Codex Sessions 会话迁移"
   short_description: "多设备间导出、传输和导入 Codex 会话"
-  default_prompt: "使用 $transfer-codex-sessions 在设备间迁移 Codex 会话。优先从安全命令开始（list、list-bundles、validate-bundles）；import 不支持 dry-run，需先做冲突分析并获得确认；repair/clean 等支持 dry-run 的命令先预览。"
+  default_prompt: "使用 $transfer-codex-sessions 在设备间迁移 Codex 会话。先确认 aik 是否可用，并在私有目录处理 codex_sessions；优先从安全命令开始（list、list-bundles、validate-bundles）；import 不支持 dry-run，需先做冲突分析并获得确认；repair/clean 等支持 dry-run 的命令先预览。"

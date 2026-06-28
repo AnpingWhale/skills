@@ -1,6 +1,6 @@
 # aik codex 命令参考
 
-所有命令通过 `aik codex <subcommand>` 执行。默认 Codex 数据根目录为 `~/.codex`，bundle 输出目录默认为当前目录下的 `./codex_sessions/`。
+所有命令通过 `aik codex <subcommand>` 执行。默认 Codex 数据根目录为 `~/.codex`，bundle 输出目录默认为当前目录下的 `./codex_sessions/`。导出前先切到私有工作目录；不要在公开 Git 仓库、同步盘或共享目录中生成 bundle。
 
 ## 查看类命令（安全，只读）
 
@@ -20,7 +20,7 @@
 
 ## 导出类命令（安全，只创建新文件）
 
-这些命令只创建 bundle 文件，不修改已有会话。
+这些命令只创建 bundle 文件，不修改已有会话。bundle 仍然包含完整会话内容和潜在敏感上下文，输出目录必须保持私有。
 
 ### `aik codex export <session_id>`
 

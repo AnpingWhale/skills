@@ -24,7 +24,8 @@
 
 - Subagent 适合短、窄、一次性任务。命名使用中文 `动词-对象`，例如 `审查-编排Skill`、`测试-导入Bundle`。
 - 用户可见 Codex thread 适合较长、多轮、会产生执行层上下文的任务。命名使用中文 `动词-项目名`，例如 `整改-编排Skill质量`、`配置-GitHub认证`。
-- 如果工具没有直接暴露 create thread，不把“没有接口”当最终答案；先自检是否能通过 Codex CLI、Codex Desktop deeplink、MCP/插件、`codex_app`、app-server/remote-control 协议或本地只读状态发现来补齐 `create-visible-thread` 工具。
+- 如果工具已暴露 `create_thread` 或 `codex_app.create_thread`，优先直接创建用户可见 thread；配合 `list_threads`、`read_thread`、`send_message_to_thread`、`set_thread_archived` 等工具完成投递、验证、回收和归档提醒。
+- 如果工具没有直接暴露 create thread，不把“没有接口”当最终答案；先用 `tool_search` 等可用发现机制自检，再评估 Codex CLI、Codex Desktop deeplink、MCP/插件、`codex_app`、app-server/remote-control 协议或本地只读状态发现是否能补齐 `create-visible-thread` 工具。
 - 如果直接工具和可补齐桥接都不可用，明确说这是 fallback，再用中文命名 subagent 或 staged single-thread fallback。
 
 ### 状态处理

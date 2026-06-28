@@ -19,12 +19,13 @@
 npx skills@latest add AnpingWhale/skills
 ```
 
-也可以手动安装单个 Skill：
+也可以手动安装需要的 Skill：
 
 ```bash
 git clone https://github.com/AnpingWhale/skills.git anpingwhale-codex-skills
 mkdir -p ~/.codex/skills
 cp -R anpingwhale-codex-skills/multi-agent-orchestrator ~/.codex/skills/
+cp -R anpingwhale-codex-skills/transfer-codex-sessions ~/.codex/skills/
 ```
 
 更新手动安装的 Skill：
@@ -33,12 +34,15 @@ cp -R anpingwhale-codex-skills/multi-agent-orchestrator ~/.codex/skills/
 cd anpingwhale-codex-skills
 git pull
 cp -R multi-agent-orchestrator ~/.codex/skills/
+cp -R transfer-codex-sessions ~/.codex/skills/
 ```
 
 ## 使用示例
 
 ```text
 使用 $multi-agent-orchestrator 管理这个长期项目。主线程负责目标、决策和整合；请按任务长度和执行密度，自主选择 role agent、subagent 或用户可见 Codex thread。
+
+使用 $transfer-codex-sessions 把 Codex 会话迁移到新设备。先 list / validate bundle，导入前做冲突分析并确认；导出的 codex_sessions 目录只放在私有传输位置。
 ```
 
 长期项目建议同时把 `multi-agent-orchestrator/references/agents-section.md` 复制到目标项目的 `AGENTS.md`。只安装 Skill 但不配置 `AGENTS.md`，会降低触发成功率和执行一致性。
@@ -99,7 +103,7 @@ npx skills@latest add mattpocock/skills
 提交前建议检查：
 
 ```bash
-ruby -ryaml -e 'skill=ARGV[0]; text=File.read(skill+"/SKILL.md"); m=text.match(/\A---\n(.*?)\n---/m); abort "Invalid frontmatter" unless m; fm=YAML.safe_load(m[1]); abort "Missing name" unless fm["name"].is_a?(String); abort "Missing description" unless fm["description"].is_a?(String); YAML.safe_load(File.read(skill+"/agents/openai.yaml")) if File.exist?(skill+"/agents/openai.yaml"); puts "Skill parses successfully"' multi-agent-orchestrator
+ruby -ryaml -e 'ARGV.each do |skill| text=File.read(skill+"/SKILL.md"); m=text.match(/\A---\n(.*?)\n---/m); abort "#{skill}: invalid frontmatter" unless m; fm=YAML.safe_load(m[1]); abort "#{skill}: missing name" unless fm["name"].is_a?(String); abort "#{skill}: missing description" unless fm["description"].is_a?(String); YAML.safe_load(File.read(skill+"/agents/openai.yaml")) if File.exist?(skill+"/agents/openai.yaml"); puts "#{skill}: ok"; end' multi-agent-orchestrator transfer-codex-sessions
 ```
 
 ## License

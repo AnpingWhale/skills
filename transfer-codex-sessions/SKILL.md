@@ -1,6 +1,6 @@
 ---
 name: transfer-codex-sessions
-description: "在多台设备之间导出、传输和导入 Codex 会话（sessions），基于 ai-cli-kit 的 aik codex 子命令。Use when the user asks to transfer Codex sessions between devices, export sessions for backup or migration, import sessions from another machine, or manage session bundles."
+description: "在多台设备之间导出、传输和导入 Codex 会话（sessions），基于 ai-cli-kit 的 aik codex 子命令。Use when the user asks to transfer Codex sessions between devices, 换机迁移、备份/恢复 Codex 会话、导出/import sessions、validate/list session bundles、让桌面端会话可见、clone/watch provider sessions, repair desktop sessions, clean archived/cloned sessions, or manage session bundles."
 ---
 
 # Transfer Codex Sessions 会话迁移
@@ -13,11 +13,18 @@ description: "在多台设备之间导出、传输和导入 Codex 会话（sessi
 - **供应商克隆**：`clone-provider`、`watch-provider`（切换 AI 供应商时自动复制历史会话）
 - **维护清理**：`repair-desktop`、`clean-archived`、`clean-clones`、`dedupe-clones`
 
-核心原则：优先使用只读命令探查状态；`import` / `import-desktop-all` 不支持 dry-run，导入前必须先 `validate-bundles`、`list-bundles`、冲突分析并获得用户确认；支持 dry-run 的清理、修复和克隆命令先预览再执行。
+核心原则：优先使用只读命令探查状态；在私有目录处理 bundle，不把 `codex_sessions/` 放进公开仓库；`import` / `import-desktop-all` 不支持 dry-run，导入前必须先 `validate-bundles`、`list-bundles`、冲突分析并获得用户确认；支持 dry-run 的清理、修复和克隆命令先预览再执行。
 
 ## 前置条件
 
-首次使用前，克隆并安装上游工具：
+首次使用前，先只读检查是否已有可用命令：
+
+```bash
+command -v aik
+aik --version
+```
+
+如果没有安装，再征得用户确认后克隆并安装上游工具：
 
 ```bash
 git clone https://github.com/goodnightzsj/codex-session-cloner.git
@@ -26,7 +33,7 @@ chmod +x install.sh
 ./install.sh
 ```
 
-安装后，`aik` 命令注册在安装目录的 venv/bin 下。也可直接在项目目录内用 `./aik` 零污染运行：
+安装会访问网络并写入本机工具目录；如果当前环境需要权限审批，先请求审批，不要静默安装。安装后，`aik` 命令注册在安装目录的 venv/bin 下。也可直接在项目目录内用 `./aik` 零污染运行：
 
 ```bash
 cd codex-session-cloner && ./aik --version
@@ -54,7 +61,7 @@ aik codex export-active-desktop-all [--dry-run]
 aik codex export-cli-all [--dry-run]
 ```
 
-导出产物放在当前目录 `./codex_sessions/` 下，按会话 ID 组织为独立 bundle 目录。
+导出产物放在当前目录 `./codex_sessions/` 下，按会话 ID 组织为独立 bundle 目录。执行导出前先确认当前目录是私有工作目录；如果当前目录在 Git 仓库、公开同步目录或共享目录内，先切到安全位置再导出。
 
 ### 2. 传输 bundle
 
@@ -122,6 +129,7 @@ aik codex dedupe-clones [target_provider] [--dry-run]
 ## 安全边界
 
 - **bundle 含敏感信息**：导出 bundle 包含完整对话历史、文件引用、凭据上下文等。不得上传到公开仓库、共享网盘或不安全通道。
+- **导出目录要私有**：`aik codex export*` 默认写入当前目录下的 `codex_sessions/`。不要在公开 Git 仓库、桌面同步目录或共享目录中导出；如果误生成，先从工作区移走并确认未被提交。
 - **传输加密**：跨网络传输时使用加密通道（rsync over SSH、加密压缩包等）。
 - **用后清理**：传输完成后在传输介质上删除 bundle。
 - **导入命令无 dry-run**：`import`、`import-desktop-all` 会写入会话存储，但不支持 `--dry-run`。必须先做 `validate-bundles`、`list-bundles`、冲突分析和用户确认。

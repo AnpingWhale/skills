@@ -1,6 +1,6 @@
 ---
 name: multi-agent-orchestrator
-description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：主线程模式/编排模式下隔离 workstreams，自动派发 role agents/subagents、子智能体/子Agent、子线程/新线程/用户可见线程，治理上下文并避免 self-validation/自恋。Use when the user asks for 主线程模式、编排模式、多 Agent 协作、多线程协作、派发任务、回收结果、归档线程、Thread 工具自检、create-visible-thread、审查、专家评价、质量评估、独立验收、测试策略、安全隐私性能评估、修改文件、提交、推送 GitHub、配置、安装、凭据流程、排障、长命令、长日志, or delegated workstreams/context hygiene."
+description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：主线程模式/编排模式下隔离 workstreams，自动派发 role agents/subagents、子智能体/子Agent、子线程/新线程/用户可见执行线程，治理上下文并避免 self-validation/自恋。Use when the user asks for 主线程模式、编排模式、多 Agent 协作、多线程协作、派发任务、回收结果、归档线程、Thread 工具自检、create_thread/codex_app.create_thread、list_threads/read_thread/send_message_to_thread、create-visible-thread、审查、专家评价、质量评估、独立验收、测试策略、安全隐私性能评估、修改文件、提交、推送 GitHub、配置、安装、凭据流程、排障、长命令、长日志, or delegated workstreams/context hygiene."
 ---
 
 # Multi-Agent Orchestrator 多 Agent 主线程编排
@@ -34,7 +34,9 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 - 当任务涉及修改文件、提交 git、推送 GitHub、创建/更新 PR、安装配置、凭据流程、长命令、长日志、反复排障、大量读文件、UI 观察、发布检查或多轮实现时，默认移到执行载体。主线程只保留调度、授权边界、结果整合和最终汇报。
 - 不要把“用户只能和主线程沟通”当作硬规则。为了保护项目上下文，主线程可以要求用户去子 thread 处理执行层对话。
 - 优先遵守更高层约束：system/developer 指令、工具政策、仓库规则、审批要求和用户安全偏好。如果理想载体被限制，说明 fallback。
-- 用户可见 Codex thread 是主线程可以自主选择的执行载体。较长、多轮、会产生大量执行层上下文或需要持续状态的任务，主线程可以主动创建或要求切换到 thread，并说明目标、边界和回收方式；不要要求用户逐次明确提出“创建新 thread”才行动。如果更高层工具政策阻止自主创建，则说明限制，并请求授权。
+- 用户可见 Codex thread 是主线程可以自主选择的执行载体。较长、多轮、会产生大量执行层上下文或需要持续状态的任务，主线程可以主动创建或要求切换到 thread，并说明目标、边界和回收方式；不要要求用户逐次明确提出“创建新 thread”才行动。
+- 如果 `create_thread`、`codex_app.create_thread`、`list_threads`、`read_thread`、`send_message_to_thread`、`set_thread_archived` 等 thread 工具已暴露，优先直接使用这些工具创建、命名、投递、读取和归档用户可见 thread；不要再停留在“没有直接接口”的旧假设上。
+- 如果更高层工具政策阻止自主创建，则说明限制，并请求授权。
 - 需要委派但不确定工具是否可用时，先使用可用的工具发现机制，例如 `tool_search`。如果没有真正可用的 subagent/thread 机制，明确说明，并用分阶段方式模拟隔离：实现、独立检查、整合。
 - 中间更新和最终汇报使用用户的语言。
 - **agent 结果消费后立刻关闭**：不要让已完成的 subagent 堆积。结果回收、验收完成后，马上调用 `close_agent` 释放资源。
@@ -52,10 +54,11 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 
 当任务应该进入用户可见 Codex thread 时，主线程先做工具自检，不把“当前没有直接按钮/工具”当成最终结论：
 
-1. 检查当前可调用工具：优先找 `create_thread`、`fork_thread`、`send_message_to_thread`、`handoff_thread`、`set_thread_title`、`set_thread_archived` 等明确 thread 工具。
-2. 如果没有直接工具，检查能否补齐桥接能力：Codex CLI、Codex Desktop deeplink、MCP/插件接口、`codex_app` 工具、`codex app-server` / `remote-control` 协议和本地状态文件。优先使用正式协议或可发现 schema，不直接写本地 SQLite/JSONL 状态。
-3. 发现可桥接协议时，设计最小工具而不是放弃。推荐工具名：`create-visible-thread`。
-4. 只有直接工具和桥接方案都暂不可用时，才使用中文命名 role agent/subagent 或 staged fallback，并在主线程说明这是 fallback。
+1. 检查当前可调用工具：如果有 `create_thread` 或 `codex_app.create_thread`，优先直接创建用户可见 thread；配合 `list_threads`、`read_thread`、`send_message_to_thread`、`handoff_thread`、`set_thread_title`、`set_thread_archived` 等工具完成投递、验证、交接和归档提醒。
+2. 如果没有直接创建工具，先用 `tool_search` 等可用发现机制确认是否能加载 thread 工具；不要只因为初始工具列表里没看到就放弃。
+3. 如果仍没有直接工具，检查能否补齐桥接能力：Codex CLI、Codex Desktop deeplink、MCP/插件接口、`codex_app` 工具、`codex app-server` / `remote-control` 协议和本地只读状态发现。优先使用正式协议或可发现 schema，不直接写本地 SQLite/JSONL 状态。
+4. 发现可桥接协议时，设计最小工具而不是放弃。推荐工具名：`create-visible-thread`。
+5. 只有直接工具和桥接方案都暂不可用时，才使用中文命名 role agent/subagent 或 staged fallback，并在主线程说明这是 fallback。
 
 `create-visible-thread` 的最小契约：
 
@@ -65,7 +68,7 @@ Behavior: 通过受支持的 Codex app-server/remote-control 协议创建非 eph
 Output: thread_id, session_id, name, open_link 或可打开方式, status, residual_risk
 ```
 
-当前可优先评估的协议路径是 app-server v2：`thread/start` 创建 thread，`thread/name/set` 设置名称，`turn/start` 投递初始 prompt，`thread/list` / `thread/read` 验证可见性。CLI 的 `fork`/`resume` 只能作为特定场景补充；Desktop deeplink 只有在明确 route 可用时才使用；本地数据库只可只读取证。
+当直接 `create_thread` / `codex_app.create_thread` 不可用时，可优先评估的协议路径是 app-server v2：`thread/start` 创建 thread，`thread/name/set` 设置名称，`turn/start` 投递初始 prompt，`thread/list` / `thread/read` 验证可见性。CLI 的 `fork`/`resume` 只能作为特定场景补充；Desktop deeplink 只有在明确 route 可用时才使用；本地数据库只可只读取证。
 
 ## 触发失败自救
 
