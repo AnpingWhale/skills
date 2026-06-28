@@ -21,6 +21,7 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 - 用户可见 Codex thread 是主线程可以自主选择的执行载体。较长、多轮、会产生大量执行层上下文或需要持续状态的任务，主线程可以主动创建或要求切换到 thread，并说明目标、边界和回收方式；不要要求用户逐次明确提出“创建新 thread”才行动。如果更高层工具政策阻止自主创建，则说明限制，并请求授权。
 - 需要委派但不确定工具是否可用时，先使用可用的工具发现机制，例如 `tool_search`。如果没有真正可用的 subagent/thread 机制，明确说明，并用分阶段方式模拟隔离：实现、独立检查、整合。
 - 中间更新和最终汇报使用用户的语言。
+- **agent 结果消费后立刻关闭**：不要让已完成的 subagent 堆积。结果回收、验收完成后，马上调用 `close_agent` 释放资源。
 
 ## 执行载体
 
@@ -69,6 +70,29 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 
 如果委派代码修改，要指定文件或模块 ownership，并提醒 worker 不要回滚无关改动或其他 Agent 的工作。
 
+## 命名规范
+
+可读的命名让用户一眼看出谁在做什么。禁止使用系统自动生成的昵称（如 Kuhn、Kant、Mill）作为执行载体的身份标识。
+
+**Subagent / Role agent：**
+
+格式：`动词-名词-简短描述`，全小写，连字符分隔。从名字就能看出任务内容。
+
+- `test-import-bundles` ← 好：动词（test）+ 对象（import-bundles）
+- `build-transfer-skill` ← 好：动词（build）+ 对象（transfer-skill）
+- `review-orchestrator-skill` ← 好：动词（review）+ 对象（orchestrator-skill）
+- `Kuhn` / `Mill` ← 禁止：系统昵称，看不出任务
+
+**用户可见 Codex thread：**
+
+格式：`动词-项目名` 或 `项目名-动词`，用连字符分隔，可包含英文关键词。
+
+- `build-transfer-codex-sessions` ← 好
+- `verify-skill-architecture` ← 好
+- `config-github-auth` ← 好
+
+命名不需要版本号或日期后缀，thread 本身就是时间线。
+
 ## 验证完整性
 
 避免 self-validation：实现上下文不应成为唯一验证上下文。
@@ -85,6 +109,25 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 - 回到主线程的内容只保留结论、证据、变更文件、验证结果、阻塞点和 residual risk。
 - 除非决策需要，不把完整 debug logs 或 trial-and-error 历史搬进主线程。
 - 当文件、测试或用户新指令推翻旧假设时，更新或删除旧假设。
+
+## 生命周期管理
+
+执行载体不是无限的。每个 agent 和 thread 都有明确的生命终点。
+
+**Subagent：**
+- 结果被主线程消费并验收后，**立即关闭**（调用 `close_agent`）。不保留已完成 agent。
+- 主线程在每次委派前，检查是否有历史残留 agent 未关闭；如有，先清理再派新任务。
+- 如果 agent 超时无响应，关闭它并改用 fallback 方式。
+
+**用户可见 Codex thread：**
+- 任务完成、结果已回收后，主线程在汇报中告知用户该 thread 可以归档或关闭。
+- 如果 thread 产出临时工件（如测试数据、bundle、clone 的仓库），在汇报中说明路径和清理建议。
+
+**临时产物：**
+- 测试用的 clone 仓库、导出 bundle、安装目录等，完成后说明位置和建议清理命令。
+- 不要假设 `/tmp` 会自动清理——显式告诉用户哪些可以删。
+
+主线程自身也应定期检查：是否有已完成的 agent 未关闭？是否有 thread 已结束但未告知用户归档？这些是 context hygiene 的一部分。
 
 ## 标准流程
 
