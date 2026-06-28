@@ -12,13 +12,13 @@ description: "Coordinate long-running Codex projects through a main-thread orche
 ## 运行模式
 
 - 保持用户只和主线程沟通。不要要求用户切换到其他线程来协调常规子任务。
-- 优先使用 subagent 或 multi-agent 工具处理需要独立性、并行性或上下文隔离的任务。
-- 只有在用户明确要求创建新的、用户可见的 Codex thread 时，才创建持久线程。
+- 主线程自主选择执行载体：可以直接处理、派发短生命周期 subagent / role agent，或创建用户可见的 Codex thread 承载较长的执行分支。
+- 当任务会产生大量执行层上下文、需要持续多轮推进、可能跨阶段恢复、或会污染主线程判断时，主线程可以主动创建用户可见的 Codex thread。创建前简要说明目的、边界和回收方式；创建后仍由主线程统一沟通、整合和最终汇报。
 - 如果当前上下文没有可见的 multi-agent 工具，先使用可用的工具发现机制，例如 `tool_search`，再决定是否退回单线程工作。
 - 如果没有真正可用的 subagent 机制，说明限制，并在可行时用清晰分离的阶段来模拟实现、验证和评审的隔离。
 - 使用用户的语言进行中间更新和最终汇报。
 - 保持主线程有决策权：主线程派发任务、权衡证据、解决冲突、执行或批准修改，并输出最终结论。
-- 在初始 intake 或 tool discovery 之后，开始任何任务工作前，简要告诉用户是否会使用 role agents / subagents，以及原因。如果主线程直接完成，也要说明原因，例如范围小、风险低、强顺序依赖或委派成本过高。
+- 在初始 intake 或 tool discovery 之后，开始任何任务工作前，简要告诉用户会采用哪种执行载体，以及原因：主线程直接处理、role agent / subagent、用户可见 Codex thread，或混合方式。
 
 ## 启动或恢复项目
 
@@ -35,7 +35,7 @@ description: "Coordinate long-running Codex projects through a main-thread orche
 
 ## 何时委派
 
-当独立性、并行性或上下文隔离能明显提高质量时，委派给角色 Agent：
+当独立性、并行性或上下文隔离能明显提高质量时，委派给角色 Agent、subagent 或用户可见的 Codex thread：
 
 - 实现完成后的独立 QA、测试或 review。
 - 大改动前的架构评审或备选方案探索。
@@ -43,10 +43,18 @@ description: "Coordinate long-running Codex projects through a main-thread orche
 - 外部资料、文档、API、历史 issue 或相似实现的调研。
 - 安全、隐私、性能或可访问性检查。
 - 发布准备、迁移说明、交接材料或验收清单。
+- 执行过程预计会产生大量日志、代码探索、失败尝试或中间推理，容易让主线程堆积过多执行层内容。
+- 任务需要持续存在的独立上下文，后续可能反复恢复、追加输入或继续迭代。
 
 当任务很小、强顺序依赖明显，或委派成本高于收益时，可以由主线程直接完成。
 
-在初始 intake 或 tool discovery 之后继续行动前，必须让委派决策可见。说明可以只有一句话，但必须包含选择的路径：委派给具名角色 Agent、主线程直接完成，或采用混合方式。
+在初始 intake 或 tool discovery 之后继续行动前，必须让执行载体决策可见。说明可以只有一句话，但必须包含选择的路径：主线程直接完成、委派给具名 role agent / subagent、创建用户可见 Codex thread，或采用混合方式。
+
+选择载体时使用以下启发：
+
+- 主线程直接完成：小范围、低风险、强顺序依赖、上下文不会明显膨胀。
+- subagent / role agent：短生命周期、目标清晰、需要独立视角或并行处理，但不需要长期保留上下文。
+- 用户可见 Codex thread：任务较长、执行细节很多、需要持续上下文、可能跨阶段恢复，或应把执行层内容从主线程隔离出去。
 
 ## 角色模式
 
@@ -85,7 +93,7 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 
 ## Context Hygiene 上下文治理
 
-- 只向 subagents 传递任务局部上下文：目标、相关路径、约束和期望输出。
+- 只向 subagents 或用户可见 Codex thread 传递任务局部上下文：目标、相关路径、约束和期望输出。
 - 如果 Agent 能自己检查文件，优先传文件路径和工件，不要粘贴大量上下文。
 - 将 subagent 结果汇总回主线程。除非决策需要，不要粘贴完整日志。
 - 长期项目中保持简短的 decision log 和 current-state summary。
@@ -95,7 +103,7 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 ## 标准流程
 
 1. Intake：复述目标、约束和 definition of done。
-2. Plan：判断是否需要委派、需要哪些角色，并告诉用户为什么会或不会使用 Agent。
+2. Plan：判断执行载体、是否需要委派、需要哪些角色或 thread，并告诉用户为什么这样选择。
 3. Dispatch：发送范围清晰的任务，说明输入、权限和输出契约。
 4. Execute：实现或协调修改，同时遵守用户约束。
 5. Validate：运行测试，并对有意义的工作使用独立 QA / review。
