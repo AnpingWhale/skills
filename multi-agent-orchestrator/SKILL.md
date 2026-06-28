@@ -16,7 +16,7 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 - 任务类型判断和触发规则。
 - subagent / 用户可见 thread 的选择与 spawn 策略。
 - 状态处理：`DONE`、`DONE_WITH_CONCERNS`、`NEEDS_CONTEXT`、`BLOCKED`。
-- 打断机制、状态监控、agent 自动关闭和 thread 归档提醒。
+- 打断机制、completion notification 消费、agent 自动关闭和 thread 归档提醒。
 
 ## 目的
 
@@ -39,6 +39,9 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 - 如果更高层工具政策阻止自主创建，则说明限制，并请求授权。
 - 需要委派但不确定工具是否可用时，先使用可用的工具发现机制，例如 `tool_search`。如果没有真正可用的 subagent/thread 机制，明确说明，并用分阶段方式模拟隔离：实现、独立检查、整合。
 - 中间更新和最终汇报使用用户的语言。
+- **subagent 派发记录**：派发后记录 agent id、中文任务名、预期产出和回收条件。
+- **completion notification 优先消费**：subagent 完成会产生 `completion notification`，但主线程不会像后台守护进程一样自动苏醒；只有正在 `wait_agent`，或用户发来新消息/下一次主线程获得执行机会时，主线程才会消费通知。收到或发现完成通知后，第一优先级是消费通知、整合摘要、关闭 agent。
+- **wait_agent 使用边界**：短任务若结果是当前回合关键路径，可以使用一次 `wait_agent`；否则等待 `completion notification`。通知没有自动触发主线程响应是平台调度机制限制，不代表 subagent 没有回报。
 - **agent 结果消费后立刻关闭**：不要让已完成的 subagent 堆积。结果回收、验收完成后，马上调用 `close_agent` 释放资源。
 - **低频状态回收**：创建用户可见 thread 后，主线程默认不频繁轮询；只在用户询问、超过约定时限、需要决策/授权/打断，或 thread 返回 `NEEDS_CONTEXT` / `BLOCKED` 时查询状态。回收时只读最终摘要和必要证据。
 
@@ -165,6 +168,9 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 执行载体不是无限的。每个 agent 和 thread 都有明确的生命终点。
 
 **Subagent：**
+- 派发后记录 agent id、中文任务名、预期产出和回收条件。
+- 默认不频繁轮询。短任务若结果是当前回合关键路径，可以使用一次 `wait_agent`；否则等待 `completion notification`。
+- `completion notification` 不一定自动触发主线程响应；主线程下一次获得执行机会时，第一优先级是消费已完成通知、整合摘要并关闭 agent。
 - 结果被主线程消费并验收后，**立即关闭**（调用 `close_agent`）。不保留已完成 agent。
 - 主线程在每次委派前，检查是否有历史残留 agent 未关闭；如有，先清理再派新任务。
 - 如果 agent 超时无响应，关闭它并改用 fallback 方式。

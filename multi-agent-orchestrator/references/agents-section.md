@@ -25,6 +25,7 @@
 ### 子代理与 Thread
 
 - Subagent 适合短、窄、一次性任务。命名使用中文 `动词-对象`，例如 `审查-编排Skill`、`测试-导入Bundle`。
+- 派发 subagent 后，主线程记录 agent id、中文任务名、预期产出和回收条件。
 - 用户可见 Codex thread 适合较长、多轮、会产生执行层上下文的任务。命名使用中文 `动词-项目名`，例如 `整改-编排Skill质量`、`配置-GitHub认证`。
 - 如果工具已暴露 `create_thread` 或 `codex_app.create_thread`，优先直接创建用户可见 thread；配合 `list_threads`、`read_thread`、`send_message_to_thread`、`set_thread_archived` 等工具完成投递、验证、回收和归档提醒。
 - 如果工具没有直接暴露 create thread，不把“没有接口”当最终答案；先用 `tool_search` 等可用发现机制自检，再评估 Codex CLI、Codex Desktop deeplink、MCP/插件、`codex_app`、app-server/remote-control 协议或本地只读状态发现是否能补齐 `create-visible-thread` 工具。
@@ -44,6 +45,9 @@
 ### 打断与监控
 
 - 如果用户说“停”“打断”“先别做”“换方向”，主线程立即停止当前执行载体或发送 interrupt，并回收当前状态。
+- 派发 subagent 后，主线程默认不频繁轮询。短任务若结果是当前回合关键路径，可以使用一次 `wait_agent`；否则等待 `completion notification`。
+- subagent 完成会产生 `completion notification`，但主线程不会像后台守护进程一样自动苏醒；只有主线程正在 `wait_agent`，或用户发来新消息/下一次主线程获得执行机会时，主线程才会消费通知。通知没有自动触发主线程响应是平台调度机制限制，不代表 subagent 没有回报。
+- 一旦收到 subagent `completion notification`，或下一次主线程获得执行机会发现有完成通知，第一优先级是消费通知、整合摘要、关闭 agent（`close_agent`）。
 - 创建用户可见 thread 后，主线程默认不频繁轮询。只记录 thread id、任务目标、预期产出和约定回收点，等待执行 thread 主动完成。
 - 只有在用户询问进度、超过约定时限、需要主线程决策/授权/打断，或 thread 出现 `NEEDS_CONTEXT` / `BLOCKED` 信号时，才查询状态。
 - 回收时优先读取最终 `DONE` 摘要和必要证据；`read_thread` 默认不带长 outputs，限制 turn 数和输出长度，避免把执行过程搬回主线程。
