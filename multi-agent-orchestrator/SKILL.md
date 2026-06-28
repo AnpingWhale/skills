@@ -20,7 +20,7 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 
 ## 目的
 
-使用这个 Skill 时，把复杂 Codex 工作作为 main-thread orchestration 来推进。主线程负责意图、边界、决策、证据整合和最终汇报；不承接主要审查结论，也不承接长执行或发布操作。执行载体负责命令密集或细节密集的工作，例如调研、实现、测试、review、修改文件、提交、推送、配置、安装、排障、发布检查、UI 操作、凭据流程和长日志。
+使用这个 Skill 时，把复杂 Codex 工作作为 main-thread orchestration 来推进。主线程尽量避免亲自执行任务，只保留目标澄清、载体选择、授权边界、结果整合和最终汇报；不承接主要审查结论，也不承接长执行或发布操作。即使是小任务，也应优先调用 Role agent / subagent 代劳；只有任务极小、没有合适委派载体且委派成本明显高于收益时，主线程才可做最小只读核对。执行载体负责命令密集或细节密集的工作，例如调研、实现、测试、review、修改文件、提交、推送、配置、安装、排障、发布检查、UI 操作、凭据流程和长日志。
 
 目标不是尽量多用 Agent，而是保护判断质量、减少上下文污染，并避免 self-validation。
 
@@ -29,7 +29,7 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 以下内容是 `AGENTS.md` 行为规则摘要。执行时优先遵守当前项目 `AGENTS.md`；如果项目中没有对应章节，先安装或补齐 `references/agents-section.md`，再开始长期/复杂任务。
 
 - 开始执行前，先说明选择的执行载体和原因：main thread、role agent/subagent、用户可见 Codex thread、staged single-thread fallback，或混合方式。
-- 按任务长度和执行密度选择载体：短、窄、一次性任务可以在主线程内派 role agent/subagent；较长、多轮、会产生执行层对话或需要持续上下文的任务，应优先切到用户可见 Codex thread。
+- 主线程默认不亲自执行任务。按任务长度和执行密度选择载体：短、窄、一次性任务也优先派 role agent/subagent；较长、多轮、会产生执行层对话或需要持续上下文的任务，应优先切到用户可见 Codex thread。
 - 当用户要求“审查、专家评价、质量评估、架构检查、找问题、验收、测试策略、安全/隐私/性能评估”时，默认委派给独立 role agent/subagent 或用户可见 thread。主线程不要亲自生成主要审查结论，只负责给出边界、回收证据、整合判断。
 - 当任务涉及修改文件、提交 git、推送 GitHub、创建/更新 PR、安装配置、凭据流程、长命令、长日志、反复排障、大量读文件、UI 观察、发布检查或多轮实现时，默认移到执行载体。主线程只保留调度、授权边界、结果整合和最终汇报。
 - 不要把“用户只能和主线程沟通”当作硬规则。为了保护项目上下文，主线程可以要求用户去子 thread 处理执行层对话。
@@ -44,12 +44,12 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 
 ## 执行载体
 
-- Main thread：intake、planning、decision-making、integration、少量只读检查，或委派成本高于收益的强顺序任务。只有任务极小、低风险且没有合适执行载体时，才可做微小修改；不得承担主要 review/audit 结论、长执行、提交、推送、安装配置或凭据流程。
+- Main thread：intake、planning、carrier selection、authorization boundary、integration、final report。只有任务极小、没有合适委派载体且委派成本明显高于收益时，才可做最小只读核对；不得承担主要 review/audit 结论、写文件、长执行、提交、推送、安装配置或凭据流程。
 - Role agent / subagent：短、窄、一次性、有边界的调研、实现、测试、review、架构批判、质量评估、安全/隐私/性能检查、迁移规划，或任何需要独立视角并能返回简洁证据的任务。
 - 用户可见 Codex thread：当主线程判断必要且工具政策允许时，用于较长或多轮执行分支、反复用户输入、环境配置、安装、凭据流程、提交/推送、UI 驱动任务、大型 debug loop，或需要在主线程之外保留持久上下文的工作。
 - Staged fallback：没有可用委派工具时，显式拆分阶段，避免实现者推理成为唯一验证面。
 
-如果主线程开始堆积执行日志或低层排障细节，应停下来重新选择执行载体。
+如果主线程开始堆积执行日志、低层排障细节或实际执行步骤，应停下来重新选择执行载体。
 
 ## Thread 工具自检与扩展
 
