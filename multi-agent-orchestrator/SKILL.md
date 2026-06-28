@@ -40,6 +40,7 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 - 需要委派但不确定工具是否可用时，先使用可用的工具发现机制，例如 `tool_search`。如果没有真正可用的 subagent/thread 机制，明确说明，并用分阶段方式模拟隔离：实现、独立检查、整合。
 - 中间更新和最终汇报使用用户的语言。
 - **agent 结果消费后立刻关闭**：不要让已完成的 subagent 堆积。结果回收、验收完成后，马上调用 `close_agent` 释放资源。
+- **低频状态回收**：创建用户可见 thread 后，主线程默认不频繁轮询；只在用户询问、超过约定时限、需要决策/授权/打断，或 thread 返回 `NEEDS_CONTEXT` / `BLOCKED` 时查询状态。回收时只读最终摘要和必要证据。
 
 ## 执行载体
 
