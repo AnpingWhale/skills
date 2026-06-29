@@ -37,13 +37,11 @@
 
 ## 安装
 
-如果你的 `skills` CLI 支持从 GitHub 仓库安装，可以直接安装仓库中的自建 Skills：
+正式 Skill 位于 `custom-skills/<skill-name>/`。安装时应指定具体 Skill 路径，或手动复制对应目录；不要假设仓库根目录一定会自动发现嵌套的 Skills。
 
-```bash
-npx skills@latest add AnpingWhale/skills
-```
+在 Codex 中，可以使用 `skill-installer` 指定仓库中的具体 Skill path 安装，例如 `custom-skills/multi-agent-orchestrator` 或 `custom-skills/transfer-codex-sessions`。
 
-手动安装时，只复制 `custom-skills/` 下的正式 Skill：
+手动安装方式如下：
 
 ```bash
 git clone https://github.com/AnpingWhale/skills.git anpingwhale-codex-skills
@@ -51,6 +49,8 @@ mkdir -p ~/.codex/skills
 cp -R anpingwhale-codex-skills/custom-skills/multi-agent-orchestrator ~/.codex/skills/
 cp -R anpingwhale-codex-skills/custom-skills/transfer-codex-sessions ~/.codex/skills/
 ```
+
+如果某个 `skills` CLI 版本明确支持仓库根目录递归发现，也可以尝试 root 安装；但这取决于 installer 兼容性，失败时请改用指定 path 或手动复制。
 
 更新手动安装的 Skill：
 
