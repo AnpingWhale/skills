@@ -1,4 +1,4 @@
 interface:
   display_name: "Multi-Agent Orchestrator 多 Agent 编排"
-  short_description: "用 AGENTS.md 固化主线程编排、子代理与独立验证"
-  default_prompt: "使用 $multi-agent-orchestrator。先确认当前项目 AGENTS.md 是否包含 Multi-Agent Orchestrator Mode；若缺失，参考 Skill 的 agents-section 模板补齐。若 create_thread/codex_app.create_thread 可用，长执行优先创建用户可见 thread；否则再自检桥接或 fallback。之后主线程只做编排，审查、修改、提交、推送、配置和长执行交给合适执行载体。"
+  short_description: "用 AGENTS.md 固化主线程编排"
+  default_prompt: "使用 $multi-agent-orchestrator。先判断当前任务是否真的需要主线程编排；如果项目还没有 `Multi-Agent Orchestrator Mode`，就按 `references/agents-section.md` 补齐 `AGENTS.md`。之后以项目自己的 `AGENTS.md` 为准选择执行载体；如果工具或政策不允许委派，就明确说明 fallback。"
