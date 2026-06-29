@@ -14,6 +14,7 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 `AGENTS.md` 负责实现：
 
 - 任务类型判断和触发规则。
+- prompt-driven 项目级委派授权：启用本模式时，先询问用户是否授权主线程按规则自主创建/使用 subagent 和用户可见 Codex thread，并把授权写入目标项目 `AGENTS.md`。
 - subagent / 用户可见 thread 的选择与 spawn 策略。
 - 状态处理：`DONE`、`DONE_WITH_CONCERNS`、`NEEDS_CONTEXT`、`BLOCKED`。
 - 打断机制、critical-path `wait_agent`、completion notification 消费、heartbeat 定时回收边界、agent 自动关闭和 thread 归档提醒。
@@ -37,13 +38,14 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 以下内容是 `AGENTS.md` 行为规则摘要。执行时优先遵守当前项目 `AGENTS.md`；如果项目中没有对应章节，先安装或补齐 `references/agents-section.md`，再开始长期/复杂任务。
 
 - 开始执行前，先说明选择的执行载体和原因：main thread、role agent/subagent、用户可见 Codex thread、staged single-thread fallback，或混合方式。
+- 首次为项目启用本模式时，必须提示用户确认“项目级委派授权”，并写入目标项目 `AGENTS.md`。授权内容应明确：主线程可把符合规则的工作委派给 subagent 或用户可见 Codex thread，不需要用户每次重复说“请创建 subagent/thread”。如果该授权缺失，先补齐授权记录，再进行长期/复杂委派。
 - 主线程默认不亲自执行密集型任务。按任务长度和执行密度选择载体：多文件、多轮、长日志、需要测试/review、涉及 git/发布/配置/凭据/安全/性能，或预计主线程会吞下大量执行细节时，启用多 Agent / Thread 编排。
 - 短、窄、低风险、预计 1-5 分钟内能完成的小任务，不强制多 Agent 编排；可使用一个轻量 role agent，或在没有合适委派载体且委派成本明显高于收益时，由主线程做最小只读核对。
 - 当用户要求“审查、专家评价、质量评估、架构检查、找问题、验收、测试策略、安全/隐私/性能评估”时，默认委派给独立 role agent/subagent 或用户可见 thread。主线程不要亲自生成主要审查结论，只负责给出边界、回收证据、整合判断。
 - 当任务涉及修改文件、提交 git、推送 GitHub、创建/更新 PR、安装配置、凭据流程、长命令、长日志、反复排障、大量读文件、UI 观察、发布检查或多轮实现时，默认移到执行载体。主线程只保留调度、授权边界、结果整合和最终汇报。
 - 不要把“用户只能和主线程沟通”当作硬规则。为了保护项目上下文，主线程可以要求用户去子 thread 处理执行层对话。
 - 优先遵守更高层约束：system/developer 指令、工具政策、仓库规则、审批要求和用户安全偏好。如果理想载体被限制，说明 fallback。
-- 用户可见 Codex thread 是主线程可以自主选择的执行载体。较长、多轮、会产生大量执行层上下文或需要持续状态的任务，主线程可以主动创建或要求切换到 thread，并说明目标、边界和回收方式；不要要求用户逐次明确提出“创建新 thread”才行动。
+- 当 `AGENTS.md` 已记录项目级委派授权时，用户可见 Codex thread 是主线程可以自主选择的执行载体。较长、多轮、会产生大量执行层上下文或需要持续状态的任务，主线程可以主动创建或要求切换到 thread，并说明目标、边界和回收方式；不要要求用户逐次明确提出“创建新 thread”才行动。
 - 如果 `create_thread`、`codex_app.create_thread`、`list_threads`、`read_thread`、`send_message_to_thread`、`set_thread_archived` 等 thread 工具已暴露，优先直接使用这些工具创建、命名、投递、读取和归档用户可见 thread；不要再停留在“没有直接接口”的旧假设上。
 - 如果更高层工具政策阻止自主创建，则说明限制，并请求授权。
 - 需要委派但不确定工具是否可用时，先使用可用的工具发现机制，例如 `tool_search`。如果没有真正可用的 subagent/thread 机制，明确说明，并用分阶段方式模拟隔离：实现、独立检查、整合。
@@ -63,6 +65,20 @@ description: "用于复杂或长期 Codex 项目的 multi-agent orchestration：
 - Staged fallback：没有可用委派工具时，显式拆分阶段，避免实现者推理成为唯一验证面。
 
 如果主线程开始堆积执行日志、低层排障细节或实际执行步骤，应停下来重新选择执行载体。
+
+## 项目级委派授权
+
+安装或首次启用本 Skill 时，使用 prompt-driven 流程询问用户是否授予项目级委派授权。授权写入目标项目 `AGENTS.md` 后，后续主线程可把它视为用户对本项目的 standing authorization：
+
+```markdown
+### Delegation Authorization
+
+用户已授权本项目使用主线程编排模式。在遵守 system/developer/tool policy、仓库规则、审批要求和安全边界的前提下，主线程可以按任务类型自主创建或使用中文命名的 subagent / role agent，以及用户可见 Codex thread，承接审查、实现、测试、配置、排障、提交、推送和长日志等执行层工作。
+
+主线程创建执行载体前仍需说明选择理由、任务边界、预期产出和回收方式；涉及凭据、破坏性操作、外部网络、提交、推送、发布或额外工具审批时，仍按当前环境要求请求确认。
+```
+
+如果 `AGENTS.md` 中没有这段授权，主线程应先向用户说明并请求写入，而不是在每次任务中都因为“没有明确要求 subagent/thread”而委派失败。该授权不能覆盖更高层工具政策；如果工具政策仍要求逐次审批，说明限制并请求当次授权。
 
 ## Thread 工具自检与扩展
 
@@ -217,8 +233,9 @@ Output: 简洁结论、证据、变更文件、执行命令、风险
 ## 安装到其他项目
 
 1. 安装本 Skill。
-2. 打开目标项目根目录的 `AGENTS.md`。
-3. 复制 [references/agents-section.md](references/agents-section.md) 中的 `Multi-Agent Orchestrator Mode` 章节。
-4. 之后再使用 `$multi-agent-orchestrator` 开始长期项目。
+2. 询问用户是否启用主线程编排模式，并确认是否写入项目级委派授权。
+3. 打开目标项目根目录的 `AGENTS.md`。
+4. 复制 [references/agents-section.md](references/agents-section.md) 中的 `Multi-Agent Orchestrator Mode` 章节；如果用户已授权，保留其中的 `Delegation Authorization` 小节。
+5. 之后再使用 `$multi-agent-orchestrator` 开始长期项目。
 
 如果目标项目没有 `AGENTS.md`，先创建它。只安装 Skill 但不更新 `AGENTS.md`，会降低触发成功率和执行一致性。

@@ -12,6 +12,7 @@
 ├── AGENTS.md
 ├── custom-skills/
 │   ├── multi-agent-orchestrator/
+│   ├── setup-anping-skills/
 │   ├── transfer-codex-sessions/
 │   └── _drafts/
 │       └── setup-anping-skills-draft.md
@@ -33,13 +34,14 @@
 | Skill | 用途 |
 | --- | --- |
 | `multi-agent-orchestrator` | 用于复杂或长期 Codex 项目的多 Agent 编排。Skill 提供触发入口、说明和 AGENTS.md 模板；核心行为通过目标项目 `AGENTS.md` 中的主线程编排规则实现。 |
+| `setup-anping-skills` | Anping 风格的 Codex 项目启动器。用于初始化项目的 AI 协作环境，配置主线程编排、项目知识库、上下文布局，并按需接入自建与外部优秀 Skills。 |
 | `transfer-codex-sessions` | 在多台设备之间导出、传输和导入 Codex 会话（sessions），基于 ai-cli-kit 的 aik codex 子命令。适用于换机迁移、会话备份和设备间同步。 |
 
 ## 安装
 
 正式 Skill 位于 `custom-skills/<skill-name>/`。安装时应指定具体 Skill 路径，或手动复制对应目录；不要假设仓库根目录一定会自动发现嵌套的 Skills。
 
-在 Codex 中，可以使用 `skill-installer` 指定仓库中的具体 Skill path 安装，例如 `custom-skills/multi-agent-orchestrator` 或 `custom-skills/transfer-codex-sessions`。
+在 Codex 中，可以使用 `skill-installer` 指定仓库中的具体 Skill path 安装，例如 `custom-skills/setup-anping-skills`、`custom-skills/multi-agent-orchestrator` 或 `custom-skills/transfer-codex-sessions`。
 
 手动安装方式如下：
 
@@ -47,6 +49,7 @@
 git clone https://github.com/AnpingWhale/skills.git anpingwhale-codex-skills
 mkdir -p ~/.codex/skills
 cp -R anpingwhale-codex-skills/custom-skills/multi-agent-orchestrator ~/.codex/skills/
+cp -R anpingwhale-codex-skills/custom-skills/setup-anping-skills ~/.codex/skills/
 cp -R anpingwhale-codex-skills/custom-skills/transfer-codex-sessions ~/.codex/skills/
 ```
 
@@ -58,6 +61,7 @@ cp -R anpingwhale-codex-skills/custom-skills/transfer-codex-sessions ~/.codex/sk
 cd anpingwhale-codex-skills
 git pull
 cp -R custom-skills/multi-agent-orchestrator ~/.codex/skills/
+cp -R custom-skills/setup-anping-skills ~/.codex/skills/
 cp -R custom-skills/transfer-codex-sessions ~/.codex/skills/
 ```
 

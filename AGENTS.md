@@ -4,7 +4,7 @@
 
 ## Scope
 
-- 正式自建 Skill 放在 `custom-skills/<skill-name>/`，例如 `custom-skills/multi-agent-orchestrator/`。
+- 正式自建 Skill 放在 `custom-skills/<skill-name>/`，例如 `custom-skills/multi-agent-orchestrator/`、`custom-skills/setup-anping-skills/`。
 - 外部优秀 Skill 的目录、推荐和接入策略放在 `referenced-skills/`；这里只放索引和策略，不 vendor 第三方源码。
 - 未发布草稿放在 `custom-skills/_drafts/`；不要把 draft 冒然发布成 Skill。
 - 不要提交第三方 vendored Skills，例如 `.agents/skills/`。
@@ -17,9 +17,17 @@
 
 Multi-Agent Orchestrator 不是省总 token 机制，而是复杂度隔离、独立验证和主线程上下文治理机制。总 token 在短任务中通常会上升；中等任务可能持平到略升；复杂长期任务即使总 token 增加，也能减少主线程上下文污染和 self-validation。
 
+### Delegation Authorization
+
+用户已授权本项目使用主线程编排模式。在遵守 system/developer/tool policy、仓库规则、审批要求和安全边界的前提下，主线程可以按任务类型自主创建或使用中文命名的 subagent / role agent，以及用户可见 Codex thread，承接审查、实现、测试、配置、排障、提交、推送和长日志等执行层工作。
+
+主线程创建执行载体前仍需说明选择理由、任务边界、预期产出和回收方式；涉及凭据、破坏性操作、外部网络、提交、推送、发布或额外工具审批时，仍按当前环境要求请求确认。
+
 ### 任务类型判断
 
 开始执行前，先用一句话说明执行载体和原因。
+
+如果本节没有 `Delegation Authorization`，主线程应先提示用户确认并写入项目级委派授权，再进行长期/复杂委派。不要因为用户没有在每次任务里重复说“创建 subagent/thread”就默认委派失败；项目级授权是本项目的 standing authorization，但不能覆盖更高层工具政策。
 
 主线程默认不亲自执行密集型任务；只保留目标澄清、载体选择、授权边界、结果整合和最终汇报。当任务多文件、多轮、长日志、需要测试/review、涉及 git/发布/配置/凭据/安全/性能，或预计主线程会吞下大量执行细节时，启用多 Agent / Thread 编排。
 

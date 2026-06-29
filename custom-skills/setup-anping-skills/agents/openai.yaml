@@ -1,0 +1,4 @@
+interface:
+  display_name: "Setup Anping Skills"
+  short_description: "初始化 Anping 风格的 Codex 项目启动器配置"
+  default_prompt: "Use $setup-anping-skills to initialize this project for Codex collaboration."
