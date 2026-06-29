@@ -4,14 +4,16 @@
 
 ## Scope
 
-- 保留自建 Skill 目录，例如 `multi-agent-orchestrator/`。
+- 正式自建 Skill 放在 `custom-skills/<skill-name>/`，例如 `custom-skills/multi-agent-orchestrator/`。
+- 外部优秀 Skill 的目录、推荐和接入策略放在 `referenced-skills/`；这里只放索引和策略，不 vendor 第三方源码。
+- 未发布草稿放在 `custom-skills/_drafts/`；不要把 draft 冒然发布成 Skill。
 - 不要提交第三方 vendored Skills，例如 `.agents/skills/`。
 - 不要提交本地工具状态，例如 `skills-lock.json`、`.scratch/`、`.DS_Store`。
-- 新增 Skill 时，一个 Skill 一个独立目录；目录名应与 `SKILL.md` frontmatter 的 `name` 一致。
+- 新增正式 Skill 时，一个 Skill 一个独立目录；目录名应与 `SKILL.md` frontmatter 的 `name` 一致。
 
 ## Multi-Agent Orchestrator Mode
 
-本仓库启用主线程编排模式。`multi-agent-orchestrator` Skill 主要提供说明、模板和辅助材料；真正约束当前项目内 AI 行为的是本节 AGENTS.md 规则。
+本仓库启用主线程编排模式。`custom-skills/multi-agent-orchestrator` Skill 主要提供说明、模板和辅助材料；真正约束当前项目内 AI 行为的是本节 AGENTS.md 规则。
 
 Multi-Agent Orchestrator 不是省总 token 机制，而是复杂度隔离、独立验证和主线程上下文治理机制。总 token 在短任务中通常会上升；中等任务可能持平到略升；复杂长期任务即使总 token 增加，也能减少主线程上下文污染和 self-validation。
 
@@ -81,7 +83,7 @@ Multi-Agent Orchestrator 不是省总 token 机制，而是复杂度隔离、独
 每个 Skill 目录默认只需要：
 
 ```text
-skill-name/
+custom-skills/skill-name/
 ├── SKILL.md
 └── agents/
     └── openai.yaml
@@ -95,10 +97,12 @@ skill-name/
 
 不要在单个 Skill 目录里放安装指南、临时日志、过程记录或泛用 README。
 
+`referenced-skills/` 中的文档不是 Skill 发布物，不需要 `SKILL.md`。它们应只描述外部来源、用途判断、安装方式和采用策略。
+
 ## Maintenance Checklist
 
 - 更新 `README.md`，让公开读者知道新增或移除的 Skill 是做什么的。
-- 校验 `SKILL.md` frontmatter 和 `agents/openai.yaml` 都能被 YAML 解析。
+- 校验 `custom-skills/*/SKILL.md` frontmatter 和 `agents/openai.yaml` 都能被 YAML 解析；跳过 `custom-skills/_drafts/`。
 - 如果当前机器也安装了该 Skill，同步更新 `~/.codex/skills/<skill-name>/`。
 - 不要在普通聊天、subagent 输出或提交内容中暴露 token、secret 或本机私有路径。
 - 长任务按 `multi-agent-orchestrator` 的规则选择执行载体；主线程只保留决策、摘要和最终结论。
