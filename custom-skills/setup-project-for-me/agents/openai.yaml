@@ -1,0 +1,4 @@
+interface:
+  display_name: "Setup Project For Me"
+  short_description: "Initialize AI collaboration project memory"
+  default_prompt: "Use $setup-project-for-me to initialize this project for long-term AI collaboration."
