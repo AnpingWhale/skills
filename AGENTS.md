@@ -4,7 +4,7 @@
 
 ## Scope
 
-- 正式自建 Skill 放在 `custom-skills/<skill-name>/`，例如 `custom-skills/multi-agent-orchestrator/`、`custom-skills/setup-anping-skills/`。
+- 正式自建 Skill 放在 `custom-skills/<skill-name>/`，例如 `custom-skills/multi-agent-orchestrator/`、`custom-skills/setup-project-for-me/`。
 - 外部优秀 Skill 的目录、推荐和接入策略放在 `referenced-skills/`；这里只放索引和策略，不 vendor 第三方源码。
 - 未发布草稿放在 `custom-skills/_drafts/`；不要把 draft 冒然发布成 Skill。
 - 不要提交第三方 vendored Skills，例如 `.agents/skills/`。
